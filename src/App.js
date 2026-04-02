@@ -10,7 +10,7 @@ function App() {
   const [message, setMessage] = useState("Please load validation rules.");
   const [loading, setLoading] = useState(false);
 
-  const CLIENT_ID = "YAHAN_APNA_CONSUMER_KEY_DALO";
+  const CLIENT_ID = "3MVG9dAEux2v1sLukFhQF9vBZ.qENfdR_rvfqzAtMu97Uao21TxTxZXc7nPbu8lIdxmiWZ8hJwpo1VWMkzDf1";
   const REDIRECT_URI = "http://localhost:3000/callback";
 
   useEffect(() => {
