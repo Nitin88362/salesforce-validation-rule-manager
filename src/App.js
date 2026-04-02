@@ -48,38 +48,37 @@ function App() {
   };
 
   const getValidationRules = async () => {
-    try {
-      setLoading(true);
-      setMessage("Loading validation rules...");
+  try {
+    setLoading(true);
+    setMessage("Loading validation rules...");
 
-      const query =
-        "SELECT Id, ValidationName, Active FROM ValidationRule";
+    const query =
+      "SELECT Id, ValidationName, Active FROM ValidationRule";
 
-      const response = await axios.get(
-        `${instanceUrl}/services/data/v60.0/tooling/query/?q=${encodeURIComponent(query)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+    const response = await axios.get(
+      `${instanceUrl}/services/data/v60.0/tooling/query/?q=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
-      const fetchedRules = response.data.records || [];
-      setRules(fetchedRules);
-      setMessage(`${fetchedRules.length} validation rule(s) loaded successfully.`);
-    } catch (error) {
-      const errorMsg =
-        error?.response?.data?.[0]?.message ||
-        error?.message ||
-        "Unknown error";
+    const fetchedRules = response.data.records || [];
+    setRules(fetchedRules);
+    setMessage(`${fetchedRules.length} validation rule(s) loaded successfully.`);
+  } catch (error) {
+    const errorMsg =
+      error?.response?.data?.[0]?.message ||
+      error?.message ||
+      "Unknown error";
 
-      setMessage(`Failed to load rules: ${errorMsg}`);
-      setRules([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    setMessage(`Failed to load rules: ${errorMsg}`);
+    setRules([]);
+  } finally {
+    setLoading(false);
+  }
+};
   const toggleRule = (id) => {
     const updatedRules = rules.map((rule) =>
       rule.Id === id ? { ...rule, Active: !rule.Active } : rule
