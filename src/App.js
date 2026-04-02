@@ -11,7 +11,7 @@ function App() {
   const [loading, setLoading] = useState(false);
 
 const CLIENT_ID = "3MVG9dAEux2v1sLukFhQF9vBZ.qENfdR_rvfqzAtMu97Uao21TxTxZXc7nPbu8lIdxmiWZ8hJwpo1VWMkzDf1";
-const REDIRECT_URI = "https://salesforce-validation-rule-manager-lime.vercel.app/callback";
+const REDIRECT_URI = "https://salesforce-validation-rule-manager-rho.vercel.app/callback";
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -114,12 +114,11 @@ const REDIRECT_URI = "https://salesforce-validation-rule-manager-lime.vercel.app
 
       setLoading(true);
       setMessage("Sending updated rules to backend...");
-
-      const response = await axios.post("http://localhost:5000/deploy-rules", {
-        rules,
-        accessToken,
-        instanceUrl,
-      });
+const response = await axios.post("https://salesforce-validation-rule-manager-1.onrender.com/deploy-rules", {
+  rules,
+  accessToken,
+  instanceUrl,
+});
 
       setMessage(response.data.message || "Changes sent successfully.");
     } catch (error) {
