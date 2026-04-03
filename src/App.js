@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -10,8 +8,11 @@ function App() {
   const [message, setMessage] = useState("Please load validation rules.");
   const [loading, setLoading] = useState(false);
 
-const CLIENT_ID = "3MVG9dAEux2v1sLukFhQF9vBZ.qENfdR_rvfqzAtMu97Uao21TxTxZXc7nPbu8lIdxmiWZ8hJwpo1VWMkzDf1";
-const REDIRECT_URI = "https://salesforce-validation-rule-manager-rho.vercel.app/callback";
+  // ✅ Salesforce Config
+  const CLIENT_ID = "3MVG9dAEux2v1sLukFhQF9vBZ.qENfdR_rvfqzAtMu97Uao21TxTxZXc7nPbu8lIdxmiWZ8hJwpo1VWMkzDf1";
+
+  // ✅ IMPORTANT FIX (auto dynamic URL)
+  const REDIRECT_URI = window.location.origin + "/callback";
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -50,51 +51,42 @@ const REDIRECT_URI = "https://salesforce-validation-rule-manager-rho.vercel.app/
   };
 
   const getValidationRules = async () => {
-  try {
-    setLoading(true);
-    setMessage("Loading validation rules...");
+    try {
+      setLoading(true);
+      setMessage("Loading validation rules...");
 
-    const query =
-      "SELECT Id, ValidationName, Active FROM ValidationRule";
+      const query =
+        "SELECT Id, ValidationName, Active FROM ValidationRule";
 
-    const response = await axios.get(
-      `${instanceUrl}/services/data/v60.0/tooling/query/?q=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `${instanceUrl}/services/data/v60.0/tooling/query/?q=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
-    const fetchedRules = response.data.records || [];
-    setRules(fetchedRules);
-    setMessage(`${fetchedRules.length} validation rule(s) loaded successfully.`);
-  } catch (error) {
-    const errorMsg =
-      error?.response?.data?.[0]?.message ||
-      error?.message ||
-      "Unknown error";
+      const fetchedRules = response.data.records || [];
+      setRules(fetchedRules);
+      setMessage(`${fetchedRules.length} validation rule(s) loaded successfully.`);
+    } catch (error) {
+      setMessage("Failed to load rules");
+      setRules([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setMessage(`Failed to load rules: ${errorMsg}`);
-    setRules([]);
-  } finally {
-    setLoading(false);
-  }
-};
   const toggleRule = (id) => {
     const updatedRules = rules.map((rule) =>
       rule.Id === id ? { ...rule, Active: !rule.Active } : rule
     );
     setRules(updatedRules);
-    setMessage("Rule status updated locally. Click Deploy Changes to continue.");
+    setMessage("Updated locally. Click Deploy.");
   };
 
   const toggleAllRules = () => {
-    if (rules.length === 0) {
-      setMessage("Please load validation rules first.");
-      return;
-    }
-
     const allActive = rules.every((rule) => rule.Active);
     const updatedRules = rules.map((rule) => ({
       ...rule,
@@ -102,201 +94,82 @@ const REDIRECT_URI = "https://salesforce-validation-rule-manager-rho.vercel.app/
     }));
 
     setRules(updatedRules);
-    setMessage("All rule statuses updated locally. Click Deploy Changes to continue.");
+    setMessage("All updated. Click Deploy.");
   };
 
   const deployChanges = async () => {
     try {
-      if (rules.length === 0) {
-        setMessage("No rules available to deploy.");
-        return;
-      }
-
       setLoading(true);
-      setMessage("Sending updated rules to backend...");
-const response = await axios.post("https://salesforce-validation-rule-manager-1.onrender.com/deploy-rules", {
-  rules,
-  accessToken,
-  instanceUrl,
-});
+      setMessage("Deploying changes...");
 
-      setMessage(response.data.message || "Changes sent successfully.");
+      // ✅ FINAL BACKEND URL (Render)
+      const response = await axios.post(
+        "https://salesforce-validation-rule-manager-3.onrender.com/deploy-rules",
+        {
+          rules,
+          accessToken,
+          instanceUrl,
+        }
+      );
+
+      setMessage(response.data.message || "Deploy success");
     } catch (error) {
-      setMessage("Deploy failed. Please check backend server.");
-      console.log(error);
+      setMessage("Deploy failed ❌");
     } finally {
       setLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("instance_url");
+    localStorage.clear();
     setAccessToken("");
     setInstanceUrl("");
     setRules([]);
-    setMessage("Logged out successfully.");
-  };
-
-  const pageStyle = {
-    minHeight: "100vh",
-    backgroundColor: "#f4f6f8",
-    padding: "30px",
-    fontFamily: "Arial, sans-serif",
-  };
-
-  const cardStyle = {
-    maxWidth: "900px",
-    margin: "0 auto",
-    backgroundColor: "#ffffff",
-    padding: "25px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-  };
-
-  const headingStyle = {
-    marginBottom: "20px",
-    color: "#1f2937",
-  };
-
-  const buttonStyle = {
-    padding: "10px 16px",
-    marginRight: "10px",
-    marginBottom: "10px",
-    border: "none",
-    borderRadius: "8px",
-    backgroundColor: "#2563eb",
-    color: "#ffffff",
-    cursor: "pointer",
-    fontWeight: "bold",
-  };
-
-  const secondaryButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: "#6b7280",
-  };
-
-  const successButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: "#059669",
-  };
-
-  const ruleButtonStyle = {
-    padding: "6px 12px",
-    border: "none",
-    borderRadius: "6px",
-    backgroundColor: "#111827",
-    color: "#ffffff",
-    cursor: "pointer",
-  };
-
-  const messageStyle = {
-    padding: "12px",
-    borderRadius: "8px",
-    backgroundColor: "#eef2ff",
-    color: "#1e3a8a",
-    marginBottom: "20px",
-    fontWeight: "bold",
-  };
-
-  const infoStyle = {
-    marginBottom: "20px",
-    lineHeight: "1.8",
-    color: "#374151",
-  };
-
-  const tableStyle = {
-    width: "100%",
-    borderCollapse: "collapse",
-    marginTop: "15px",
-  };
-
-  const thTdStyle = {
-    border: "1px solid #d1d5db",
-    padding: "12px",
-    textAlign: "left",
-  };
-
-  const thStyle = {
-    ...thTdStyle,
-    backgroundColor: "#f3f4f6",
+    setMessage("Logged out");
   };
 
   return (
-    <div style={pageStyle}>
-      <div style={cardStyle}>
-        <h1 style={headingStyle}>Salesforce Validation Rule Manager</h1>
+    <div style={{ padding: "30px" }}>
+      <h1>Salesforce Validation Rule Manager</h1>
 
-        {!accessToken ? (
-          <button style={buttonStyle} onClick={loginWithSalesforce}>
-            Login with Salesforce
-          </button>
-        ) : (
-          <>
-            <div>
-              <button style={buttonStyle} onClick={getValidationRules} disabled={loading}>
-                Get Validation Rules
-              </button>
+      {!accessToken ? (
+        <button onClick={loginWithSalesforce}>
+          Login with Salesforce
+        </button>
+      ) : (
+        <>
+          <button onClick={getValidationRules}>Get Rules</button>
+          <button onClick={toggleAllRules}>Toggle All</button>
+          <button onClick={deployChanges}>Deploy</button>
+          <button onClick={logout}>Logout</button>
 
-              <button style={secondaryButtonStyle} onClick={toggleAllRules} disabled={loading}>
-                Toggle All
-              </button>
+          <p>{loading ? "Loading..." : message}</p>
 
-              <button style={successButtonStyle} onClick={deployChanges} disabled={loading}>
-                Deploy Changes
-              </button>
+          <table border="1">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
 
-              <button style={secondaryButtonStyle} onClick={logout} disabled={loading}>
-                Logout
-              </button>
-            </div>
-
-            <div style={messageStyle}>{loading ? "Please wait..." : message}</div>
-
-            <div style={infoStyle}>
-              <div><b>Login Status:</b> Connected</div>
-              <div><b>Instance URL:</b> {instanceUrl || "Not available"}</div>
-              <div><b>Total Rules:</b> {rules.length}</div>
-            </div>
-
-            <table style={tableStyle}>
-              <thead>
-                <tr>
-                  <th style={thStyle}>Rule Name</th>
-                  <th style={thStyle}>Status</th>
-                  <th style={thStyle}>Action</th>
+            <tbody>
+              {rules.map((rule) => (
+                <tr key={rule.Id}>
+                  <td>{rule.ValidationName}</td>
+                  <td>{rule.Active ? "Active" : "Inactive"}</td>
+                  <td>
+                    <button onClick={() => toggleRule(rule.Id)}>
+                      {rule.Active ? "Disable" : "Enable"}
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rules.length > 0 ? (
-                  rules.map((rule) => (
-                    <tr key={rule.Id}>
-                      <td style={thTdStyle}>{rule.ValidationName}</td>
-                      <td style={thTdStyle}>
-                        {rule.Active ? "Active" : "Inactive"}
-                      </td>
-                      <td style={thTdStyle}>
-                        <button
-                          style={ruleButtonStyle}
-                          onClick={() => toggleRule(rule.Id)}
-                        >
-                          {rule.Active ? "Disable" : "Enable"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td style={thTdStyle} colSpan="3">
-                      No validation rules loaded.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </>
-        )}
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
     </div>
   );
 }
